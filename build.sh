@@ -11,4 +11,5 @@ then
   python manage.py createsuperuser --no-input --email "$DJANGO_SUPERUSER_EMAIL"
 fi
 
+# Start Command
 # python manage.py migrate && python manage.py collectstatic && gunicorn django_chatbot.wsgi.application
