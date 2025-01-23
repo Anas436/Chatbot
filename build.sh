@@ -12,4 +12,4 @@ then
 fi
 
 # Start Command
-# python manage.py migrate && python manage.py collectstatic && gunicorn django_chatbot.wsgi.application
+# python manage.py migrate && python manage.py collectstatic && gunicorn django_chatbot.wsgi:application
