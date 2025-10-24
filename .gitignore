@@ -1,0 +1,58 @@
+== Standard Python/Chatbot Project Ignore File ==
+
+Byte-compiled / optimized / DLL files
+
+pycache/
+*.py[cod]
+*$py.class
+*.pyd
+*.so
+
+Virtual Environments
+
+venv/
+env/
+.venv/
+.tox/
+
+Build and Distribution
+
+build/
+dist/
+*.egg-info/
+*.egg
+
+Testing, Cache, and Documentation
+
+.coverage
+.coverage.*
+/htmlcov/
+.mypy_cache/
+.pytest_cache/
+.ruff_cache/
+/.nox/
+/docs/_build/
+
+Operating System Files
+
+.DS_Store
+Thumbs.db
+
+=== Secrets and Credentials (CRITICAL) ===
+
+Configuration and Environment Variables
+
+These files MUST NOT be committed as they contain API keys!
+
+.env
+.flaskenv
+.vault
+*.key
+*.pem
+*.p12
+
+Groq API Key (Specific Variable or File)
+
+If your code uses a specific file to store the Groq key, list it here.
+
+GROQ_API_KEY

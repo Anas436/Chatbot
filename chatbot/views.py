@@ -28,7 +28,7 @@ def ask_groq(message):
     try:
         # Make API call with the correct setup
         response = client.chat.completions.create(
-            model="llama-3.3-70B-specdec",  # Adjust model name if needed
+            model="openai/gpt-oss-120b",  # Adjust model name if needed
             messages=[
                 {"role": "system", "content": "You are a helpful assistant."},
                 {"role": "user", "content": message}
