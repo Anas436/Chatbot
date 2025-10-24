@@ -1,6 +1,7 @@
 import re
 from django.shortcuts import render, redirect
-from django.http import JsonResponse
+from django.http import JsonResponse, HttpResponse
+from django.views.decorators.http import require_POST
 from django.contrib import auth
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
@@ -82,6 +83,23 @@ def chatbot(request):
             return JsonResponse({'error': 'No message provided'}, status=400)
 
     return render(request, 'chatbot.html', {'chats': chats})
+
+@require_POST
+@login_required(login_url='/login')
+def delete_chat_history(request):
+    """
+    Deletes all chat records associated with the current authenticated user.
+    """
+    try:
+        # Delete all chat objects belonging to the current user
+        Chat.objects.filter(user=request.user).delete()
+        
+        # Return a success response
+        return HttpResponse(status=204) # 204 No Content is standard for successful deletion
+    except Exception as e:
+        print(f"Error deleting chat history for user {request.user.username}: {e}")
+        return HttpResponse(status=500, reason="Failed to delete chat history")
+
 
 def login(request):
     if request.method == 'POST':

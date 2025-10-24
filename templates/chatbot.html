@@ -36,13 +36,42 @@
     }
 
     .message-form {
-      display: flex;
+      /* REMOVE: display: flex; from here */
       position: fixed;
       bottom: 0;
       left: 0;
       right: 0;
       padding: 10px;
       background-color: #f8f9fa;
+
+      /* NEW: Use flex to center the wrapper content */
+      display: flex; 
+      justify-content: center;
+    }
+    
+    /* NEW STYLE: To hold the input group and the buttons */
+    .form-content-wrapper {
+        display: flex;
+        flex-direction: column; /* Stack input and buttons vertically */
+        gap: 5px; /* Spacing between input and buttons */
+
+        /* NEW: Ensure the wrapper doesn't take up the full width, center it with a max-width if needed */
+        width: 100%;
+        max-width: 800px; /* Example: set a max width for centering */
+    }
+
+    /* NEW STYLE: To hold the two new buttons */
+    .form-buttons-wrapper {
+        display: flex;
+        justify-content: center; /* Align buttons to the right */
+        gap: 10px; /* Spacing between buttons */
+        padding-top: 5px; /* Optional: adds a little space above the buttons */
+    }
+
+    /* NEW STYLE: To make both buttons the same size */
+    .btn-equal-width {
+        flex-grow: 1; /* Allows buttons to take equal space */
+        max-width: 110px; /* Limit the maximum width of each button for centering effect */
     }
 
     .message-input {
@@ -54,12 +83,42 @@
     .btn-send {
       border-radius: 0;
     }
+    
+    /* NEW STYLE: For the delete button to stand out */
+    .btn-delete {
+        /* Add styles as needed, using Bootstrap danger color is common */
+        background-color: #dc3545; /* Bootstrap danger color */
+        border-color: #dc3545;
+        color: white;
+    }
+    
+    /* NEW STYLE: For the logout button */
+    .btn-logout {
+        /* Add styles as needed, using Bootstrap secondary or primary */
+        background-color: #6c757d; /* Bootstrap secondary color */
+        border-color: #6c757d;
+        color: white;
+    }
 
     .chat-container {
       height: 100%;
       display: flex;
       flex-direction: column;
+
+      /* Set a max width (e.g., 800px) and center the container */
+      max-width: 1200px; /* Adjust this value to control the chat width */
+      margin: 0 auto; /* This centers the container horizontally */
     }
+
+    /* NEW: Ensure the card only takes up the available centered space */
+    .card {
+        width: 100%;
+        /* ADD THIS LINE to remove the border */
+        border: none; 
+        /* You might also want to remove the default box-shadow if it's noticeable */
+        box-shadow: none;
+    }
+
   </style>
 {% endblock %}
 
@@ -67,9 +126,9 @@
 {% block content %}
 <div class="chat-container">
   <div class="card flex-grow-1">
-    <div class="card-header bg-primary text-white">AI Assistant</div>
+    <div class="card-header bg-primary text-white"><b>DocuMind</b></div>
     {% if user.is_authenticated %}
-    <div class="card-header bg-primary text-white"><b>Welcome, {{user.username}}</b><a style="color: yellow;" href="logout">Logout</a></div>
+    <div class="card-header bg-primary text-white">Welcome, <b>{{user.username}}</b></div>
     {% else %}
     <div class="card-header bg-primary text-white"><a style="color: yellow" href="login">Login</a>   <a style="color: yellow;" href="register">Register</a></div>
     {% endif %}
@@ -77,17 +136,6 @@
       
       <ul class="list-unstyled messages-list">
         
-        <!-- <li class="message received">
-          <div class="message-text">
-            <div class="message-sender">
-              <b>AI Chatbot</b>
-            </div>
-            <div class="message-content">
-              Hi {{user.username}}, I am your AI Chatbot, you can ask me anything.
-            </div>
-          </div>
-        </li> -->
-
         {% for chat in chats %}
           {% if chat.user == request.user %}
 
@@ -105,7 +153,7 @@
         <li class="message received">
           <div class="message-text">
             <div class="message-sender">
-              <b>AI Chatbot</b>
+              <b>DocuMind</b>
             </div>
             <div class="message-content">
               {{chat.response}}
@@ -125,16 +173,27 @@
   </div>
   <form class="message-form">
     {%csrf_token%}
-    <div class="input-group">
-      <input type="text" class="form-control message-input" placeholder="Type your message...">
-      <div class="input-group-append">
-        <button type="submit" class="btn btn-primary btn-send">Send</button>
+    <div class="form-content-wrapper"> 
+      <div class="input-group">
+        <input type="text" class="form-control message-input" placeholder="Type your message...">
+        <div class="input-group-append">
+          <button type="submit" class="btn btn-primary btn-send">Send</button>
+        </div>
+      </div>
+
+      <div class="form-buttons-wrapper">
+        {% if user.is_authenticated %}
+          <button type="button" id="delete-chat-btn" class="btn btn-delete btn-equal-width">Delete Chat</button> 
+          <a href="logout" class="btn btn-logout btn-equal-width" role="button">Logout</a>
+        {% endif %}
       </div>
     </div>
   </form>
 </div>
 
+
 <script>
+
   const messagesList = document.querySelector('.messages-list');
   const messageForm = document.querySelector('.message-form');
   const messageInput = document.querySelector('.message-input');
@@ -178,7 +237,7 @@
         messageItem.innerHTML = `
         <div class="message-text">
             <div class="message-sender">
-              <b>AI Chatbot</b>
+              <b>DocuMind</b>
             </div>
             <div class="message-content">
                 ${response}
@@ -189,5 +248,76 @@
       });
   });
 
+  // Event Listener for Delete Chat Button
+    const deleteChatBtn = document.getElementById('delete-chat-btn');
+    
+    function showDeleteFeedback(buttonElement, success) {
+        const originalText = 'Delete Chat';
+        const successText = 'Deleting...';
+        const failureText = 'Error!';
+
+        // 1. Reset initial state
+        buttonElement.disabled = false;
+        buttonElement.classList.remove('btn-delete-success', 'btn-delete-error');
+        buttonElement.classList.add('btn-delete'); // Ensure original class is present
+
+        // 2. Apply feedback
+        if (success) {
+            buttonElement.textContent = successText;
+            // Optionally, add a temporary class for success styling
+            // buttonElement.classList.add('btn-delete-success'); 
+        } else {
+            buttonElement.textContent = failureText;
+            // Optionally, add a temporary class for error styling
+            // buttonElement.classList.add('btn-delete-error');
+        }
+
+        // 3. Revert to original text after a short delay
+        setTimeout(() => {
+            buttonElement.textContent = originalText;
+            // buttonElement.classList.remove('btn-delete-success', 'btn-delete-error');
+        }, 2000); // Revert after 2 seconds (2000ms)
+    }
+
+    if (deleteChatBtn) {
+      deleteChatBtn.addEventListener('click', () => {
+        
+        // Temporarily disable the button to prevent multiple clicks
+        deleteChatBtn.disabled = true;
+        deleteChatBtn.textContent = 'Deleting...'; // Display 'Deleting...'
+
+        fetch('/delete_chat/', { // Use absolute path defined in urls.py
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: new URLSearchParams({
+              'csrfmiddlewaretoken': document.querySelector('[name=csrfmiddlewaretoken]').value
+            })
+          })
+            .then(response => {
+              if (response.status === 204) { // HTTP 204 No Content for success
+                // Clear the messages list on successful deletion
+                messagesList.innerHTML = ''; 
+                // CALL FEEDBACK FUNCTION ON SUCCESS
+                showDeleteFeedback(deleteChatBtn, true); 
+              } else {
+                // CALL FEEDBACK FUNCTION ON FAILURE (e.g., 403 Forbidden, 500 Internal Server Error)
+                showDeleteFeedback(deleteChatBtn, false);
+              }
+            })
+            .catch(error => {
+              console.error('Error:', error);
+              // CALL FEEDBACK FUNCTION ON NETWORK/FETCH ERROR
+              showDeleteFeedback(deleteChatBtn, false);
+            })
+            // REMOVE the finally block, as feedback is now handled in .then() and .catch()
+            // .finally(() => {
+            //     deleteChatBtn.disabled = false; // Re-enable the button
+            // }); 
+        
+      });
+    }
+
 </script>
+
+
 {% endblock %}

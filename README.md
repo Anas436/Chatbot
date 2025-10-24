@@ -1,4 +1,6 @@
-# Chat with LlamaAI
+# DocuMind
+
+__A Clear, memorable, and emphasizes intelligence.__
 
 ### Demo
 
