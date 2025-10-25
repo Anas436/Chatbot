@@ -19,6 +19,5 @@ __A Clear, memorable, and emphasizes intelligence.__
 ## Reference
 - Groq is Fast AI Inference [here](https://groq.com/)
 - Clinical AI Advisor using RAG, LLM, and Streamlit [here](https://github.com/Saifulislamsayem19/Clinical-AI-Advisor-using-RAG-and-LLM)
-- Ai-assistant-with-Llama-using-GROQ [here](https://github.com/Md-Emon-Hasan/Ai-assistant-with-Llama-using-GROQ/tree/master)
 - ChatBot using Streamlit and CohereAI [here](https://github.com/ash956901/Chatbot)
 - ChatBot (GPT-3.5) using Streamlit and OpenAI [here](https://github.com/fshnkarimi/Chat-Bot-using-Streamlit-and-OpenAI/tree/main)
