@@ -106,7 +106,7 @@
       flex-direction: column;
 
       /* Set a max width (e.g., 800px) and center the container */
-      max-width: 1200px; /* Adjust this value to control the chat width */
+      max-width: 1100px; /* Adjust this value to control the chat width */
       margin: 0 auto; /* This centers the container horizontally */
     }
 
@@ -119,6 +119,142 @@
         box-shadow: none;
     }
 
+    /* NEW STYLE: For the file upload button to make it square and distinct */
+    .btn-file-upload {
+        /* Square shape is achieved by equal width and height */
+        width: 38px; /* Set a fixed width */
+        height: 38px; /* Set a fixed height */
+        padding: 0; /* Remove default padding */
+        line-height: 1; /* Adjust line height for '+' centering */
+        font-size: 1.5rem; /* Make the '+' sign bigger */
+        font-weight: bold;
+        display: flex; /* Use flex to perfectly center the '+' */
+        align-items: center;
+        justify-content: center;
+        margin: auto 5px auto 0; /* Add margin on the right and center vertically */
+        background-color: #e9ecef; /* Light background */
+        border-color: #e9ecef;
+        color: #495057; /* Darker text color */
+
+        /* To look more 'interactive' and modern, let's add a slight border radius */
+        border-radius: 6px; /* A slight rounding for a modern square look */
+    }
+
+    /* Override Bootstrap's input-group-prepend to align the button */
+    .input-group-prepend {
+        /* This is important to vertically align the button with the input field */
+        display: flex; 
+        align-items: center; 
+        margin-right: -4.1px; /* Pull the button closer to the input field */
+    }
+
+    /* Adjust the message input to remove the rounded corner on the left */
+    .message-input {
+      flex: 1;
+      border-top-left-radius: 0.25rem; /* Keep default Bootstrap corner */
+      border-bottom-left-radius: 0.25rem; /* Keep default Bootstrap corner */
+      border-right: none;
+    }
+
+    /* NEW STYLE: For the file attachment container */
+    .attachment-container {
+        display: flex;
+        align-items: center;
+        padding: 5px 0;
+    }
+
+    /* NEW STYLE: For the file token box (the file preview) */
+    .file-token {
+        display: flex;
+        align-items: center;
+        background-color: #f1f0f0; /* Light background */
+        border: 1px solid #dee2e6;
+        border-radius: 8px;
+        padding: 8px 12px;
+        margin-right: 10px;
+        font-size: 0.9rem;
+        max-width: 600px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    }
+
+    /* NEW STYLE: For the icon and text alignment */
+    .file-icon {
+        color: #dc3545; /* Red color for PDF/file icon */
+        margin-right: 8px;
+        font-size: 1.2rem;
+        font-weight: bold;
+    }
+    
+    /* NEW STYLE: To align the input/send button area */
+    .input-wrapper {
+        display: flex;
+        flex-grow: 1; /* Allows it to take remaining space */
+        align-items: center;
+    }
+
+    /* Adjust the form input area to be flexible to accommodate the token */
+    .input-group {
+        width: 100%; /* Ensure input group fills its container */
+        /* Make it flexible to align the token next to it */
+        flex-wrap: nowrap; 
+    }
+
+
+    /* NEW STYLES FOR MARKDOWN RENDERING */
+    .message-content {
+        /* Set a comfortable line height for the text content */
+        line-height: 1.6;
+        /* Allow overflow content to be scrollable horizontally if necessary */
+        overflow-x: auto; 
+    }
+
+    /* Style for Headers (to make them stand out) */
+    .message-content h3, 
+    .message-content h4 {
+        margin-top: 15px;
+        margin-bottom: 8px;
+        font-weight: bold;
+        border-bottom: 1px solid #dee2e6; /* Light separator */
+        padding-bottom: 4px;
+    }
+
+    /* Style for Tables (crucial for clean structure) */
+    .message-content table {
+        width: 100%;
+        border-collapse: collapse;
+        margin: 10px 0;
+        /* Ensure table text wraps correctly */
+        word-break: break-word; 
+    }
+
+    .message-content th, 
+    .message-content td {
+        padding: 8px;
+        border: 1px solid #ccc;
+        text-align: left;
+        vertical-align: top;
+        /* Ensure table content is readable */
+        font-size: 0.9em; 
+    }
+
+    .message-content th {
+        background-color: #e9ecef; /* Light gray background for headers */
+        font-weight: bold;
+    }
+
+    /* Style for code blocks (if they are generated) */
+    .message-content pre {
+        background-color: #f8f9fa;
+        border: 1px solid #e9ecef;
+        padding: 10px;
+        border-radius: 5px;
+        overflow-x: auto;
+    }
+    /* END NEW STYLES FOR MARKDOWN RENDERING */
+
   </style>
 {% endblock %}
 
@@ -126,12 +262,7 @@
 {% block content %}
 <div class="chat-container">
   <div class="card flex-grow-1">
-    <div class="card-header bg-primary text-white"><b>DocuMind</b></div>
-    {% if user.is_authenticated %}
-    <div class="card-header bg-primary text-white">Welcome, <b>{{user.username}}</b></div>
-    {% else %}
-    <div class="card-header bg-primary text-white"><a style="color: yellow" href="login">Login</a>   <a style="color: yellow;" href="register">Register</a></div>
-    {% endif %}
+
     <div class="card-body messages-box">
       
       <ul class="list-unstyled messages-list">
@@ -155,7 +286,7 @@
             <div class="message-sender">
               <b>DocuMind</b>
             </div>
-            <div class="message-content">
+            <div class="message-content" id="response-{{ chat.id }}">
               {{chat.response}}
             </div>
           </div>
@@ -171,16 +302,29 @@
     <br><br>
     <br><br>
   </div>
+
   <form class="message-form">
     {%csrf_token%}
-    <div class="form-content-wrapper"> 
+    <div class="form-content-wrapper">
+      <div id="attachment-preview" class="attachment-container">
+        </div> 
+      
       <div class="input-group">
-        <input type="text" class="form-control message-input" placeholder="Type your message...">
+        
+        <input type="file" id="file-input" name="file-input" style="display: none;" accept=".pdf,.doc,.docx,.txt" multiple>
+        
+        <div class="input-group-prepend">
+            <button type="button" id="file-upload-btn" class="btn btn-secondary btn-file-upload">
+                +
+            </button>
+        </div>
+        
+        <input type="text" class="form-control message-input" placeholder="Ask DocuMind...">
+        
         <div class="input-group-append">
           <button type="submit" class="btn btn-primary btn-send">Send</button>
         </div>
       </div>
-
       <div class="form-buttons-wrapper">
         {% if user.is_authenticated %}
           <button type="button" id="delete-chat-btn" class="btn btn-delete btn-equal-width">Delete Chat</button> 
@@ -189,6 +333,7 @@
       </div>
     </div>
   </form>
+
 </div>
 
 
@@ -197,15 +342,53 @@
   const messagesList = document.querySelector('.messages-list');
   const messageForm = document.querySelector('.message-form');
   const messageInput = document.querySelector('.message-input');
+  
+  // NEW HELPER FUNCTION: To render markdown content
+  function renderMarkdown(markdownText) {
+      // Use marked.parse to convert markdown to HTML
+      return marked.parse(markdownText || '');
+  }
+  
+  // NEW: Render the chat history upon page load
+  document.addEventListener('DOMContentLoaded', () => {
+    // Loop through all existing response elements and render their markdown
+    const historyResponses = document.querySelectorAll('.message.received .message-content');
+    historyResponses.forEach(contentDiv => {
+        const rawMarkdown = contentDiv.textContent.trim();
+        // Replace the raw text content with the rendered HTML
+        contentDiv.innerHTML = renderMarkdown(rawMarkdown); 
+    });
+    
+    // Scroll to the bottom of the messages list on load
+    const messagesBox = document.querySelector('.messages-box');
+    messagesBox.scrollTop = messagesBox.scrollHeight;
+  });
+
 
   messageForm.addEventListener('submit', (event) => {
     event.preventDefault();
 
     const message = messageInput.value.trim();
-    if (message.length === 0) {
+    // NEW: Get the list of attached files
+    const attachedFiles = fileInput.files;
+    const fileNames = Array.from(attachedFiles).map(file => file.name);
+
+    // MODIFIED: Only proceed if there is a message OR at least one attached file
+    if (message.length === 0 && fileNames.length === 0) {
       return;
     }
 
+    // NEW: Construct the display message for the user, including file info
+    let userMessageContent = renderMarkdown(message); // Render user message too, in case they use markdown
+    if (fileNames.length > 0) {
+        const fileListString = fileNames.join(', ');
+        // Append the attachment info directly as HTML
+        userMessageContent += `<div style="margin-top: 5px; font-size: 0.9em; color: #6c757d;">
+                                Attached: ${fileListString}
+                              </div>`;
+    }
+    
+    // Display the user's message (including file names if present)
     const messageItem = document.createElement('li');
     messageItem.classList.add('message', 'sent');
     messageItem.innerHTML = `
@@ -214,37 +397,82 @@
                 <b>You</b>
             </div>
             <div class="message-content">
-                ${message}
+                ${userMessageContent}
             </div>
         </div>`;
     messagesList.appendChild(messageItem);
 
+    // Clear the input and file attachment after successful submission
     messageInput.value = '';
+    
+    // NEW: Clear the file attachment UI and input
+    clearFileAttachment(); 
+
+    // Add a temporary loading message for better UX
+    const loadingItem = document.createElement('li');
+    loadingItem.classList.add('message', 'received');
+    loadingItem.id = 'loading-message';
+    loadingItem.innerHTML = `
+        <div class="message-text">
+            <div class="message-sender">
+                <b>DocuMind</b>
+            </div>
+            <div class="message-content">
+                ...Thinking...
+            </div>
+        </div>
+    `;
+    messagesList.appendChild(loadingItem);
+    
+    // Scroll to the bottom to show the loading message
+    messagesList.lastElementChild.scrollIntoView({ behavior: 'smooth' });
+
+
+    // Prepare the request body to include file names
+    const requestBody = new URLSearchParams({
+        'csrfmiddlewaretoken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+        'message': message,
+        'file_names': JSON.stringify(fileNames) // Send file names as a JSON string
+    });
 
     fetch('', {
       method: 'POST',
       headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-      body: new URLSearchParams({
-        'csrfmiddlewaretoken': document.querySelector('[name=csrfmiddlewaretoken]').value,
-        'message': message
-      })
+      body: requestBody
     })
       .then(response => response.json())
       .then(data => {
-        const response = data.response;
-        const messageItem = document.createElement('li');
-        messageItem.classList.add('message', 'received');
-        messageItem.innerHTML = `
+        // Remove the loading message
+        document.getElementById('loading-message')?.remove();
+
+        const responseText = data.response;
+        // MODIFIED: Use renderMarkdown for the AI response
+        const renderedResponse = renderMarkdown(responseText); 
+        
+        const responseItem = document.createElement('li');
+        responseItem.classList.add('message', 'received');
+        responseItem.innerHTML = `
         <div class="message-text">
             <div class="message-sender">
               <b>DocuMind</b>
             </div>
             <div class="message-content">
-                ${response}
-            </div>
+                ${renderedResponse} </div>
         </div>
           `;
-        messagesList.appendChild(messageItem);
+        messagesList.appendChild(responseItem);
+        
+        // Scroll to the bottom after the response is added
+        messagesList.lastElementChild.scrollIntoView({ behavior: 'smooth' });
+      })
+      .catch(error => {
+          console.error('Fetch Error:', error);
+          // Remove the loading message and display an error
+          document.getElementById('loading-message')?.remove();
+          const errorItem = document.createElement('li');
+          errorItem.classList.add('message', 'received');
+          errorItem.innerHTML = `<div class="message-text"><div class="message-sender"><b>DocuMind</b></div><div class="message-content" style="color: red;">Error: Failed to get response.</div></div>`;
+          messagesList.appendChild(errorItem);
       });
   });
 
@@ -256,26 +484,20 @@
         const successText = 'Deleting...';
         const failureText = 'Error!';
 
-        // 1. Reset initial state
-        buttonElement.disabled = false;
-        buttonElement.classList.remove('btn-delete-success', 'btn-delete-error');
-        buttonElement.classList.add('btn-delete'); // Ensure original class is present
+        // 1. Set text and state
+        buttonElement.disabled = true;
 
         // 2. Apply feedback
         if (success) {
             buttonElement.textContent = successText;
-            // Optionally, add a temporary class for success styling
-            // buttonElement.classList.add('btn-delete-success'); 
         } else {
             buttonElement.textContent = failureText;
-            // Optionally, add a temporary class for error styling
-            // buttonElement.classList.add('btn-delete-error');
         }
 
         // 3. Revert to original text after a short delay
         setTimeout(() => {
             buttonElement.textContent = originalText;
-            // buttonElement.classList.remove('btn-delete-success', 'btn-delete-error');
+            buttonElement.disabled = false;
         }, 2000); // Revert after 2 seconds (2000ms)
     }
 
@@ -309,15 +531,79 @@
               // CALL FEEDBACK FUNCTION ON NETWORK/FETCH ERROR
               showDeleteFeedback(deleteChatBtn, false);
             })
-            // REMOVE the finally block, as feedback is now handled in .then() and .catch()
-            // .finally(() => {
-            //     deleteChatBtn.disabled = false; // Re-enable the button
-            // }); 
         
       });
     }
 
+  // File handling (No functional change, but included for completeness)
+    const fileInput = document.getElementById('file-input');
+    const fileUploadBtn = document.getElementById('file-upload-btn');
+    const attachmentPreview = document.getElementById('attachment-preview');
+
+    // Helper function to create the file token HTML
+    function createFileToken(fileName) {
+        const token = document.createElement('div');
+        token.classList.add('file-token');
+        token.innerHTML = `
+            <span class="file-icon">📄</span>
+            <span class="file-name" title="${fileName}">${fileName}</span>
+            <button type="button" class="close ml-2" aria-label="Close" style="border: none; background: none; color: #495057;">
+                <span aria-hidden="true">&times;</span>
+            </button>
+        `;
+
+        const closeButton = token.querySelector('.close');
+        // MODIFIED: The close button needs to re-run the file input change event
+        closeButton.addEventListener('click', () => {
+            clearFileAttachment();
+            // Re-run the change logic to ensure the placeholder is reset
+            fileInput.dispatchEvent(new Event('change'));
+        });
+
+        return token;
+    }
+
+    // Helper function to clear the file attachment
+    function clearFileAttachment() {
+        fileInput.value = ''; 
+        attachmentPreview.innerHTML = ''; 
+        messageInput.placeholder = 'Ask DocuMind...';
+    }
+
+    // Event Listener for the Plus Button
+    if (fileUploadBtn && fileInput) {
+      fileUploadBtn.addEventListener('click', () => {
+        fileInput.click(); // Programmatically click the hidden file input
+      });
+      
+      // Event Listener for when a file is actually selected
+      fileInput.addEventListener('change', () => {
+          attachmentPreview.innerHTML = ''; 
+
+          if (fileInput.files.length > 0) {
+              // Loop through ALL selected files
+              for (let i = 0; i < fileInput.files.length; i++) {
+                  const file = fileInput.files[i];
+                  const fileName = file.name;
+              
+                  // 1. Create and append a visual file token for EACH file
+                  const fileToken = createFileToken(fileName);
+                  attachmentPreview.appendChild(fileToken);
+              }
+              
+              // 2. Update the message input placeholder
+              messageInput.placeholder = `Ask about the ${fileInput.files.length} documents...`;
+          } else {
+              // If files were attached and then cleared (e.g., via the clearFileAttachment call), reset the placeholder
+              messageInput.placeholder = 'Ask DocuMind...';
+          }
+      });
+    }
+
 </script>
+
+
+
 
 
 {% endblock %}

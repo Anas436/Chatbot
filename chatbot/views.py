@@ -10,6 +10,7 @@ from .models import Chat
 from django.utils import timezone
 
 import os
+import json
 from dotenv import load_dotenv
 from groq import Groq
 from langchain_groq import ChatGroq
@@ -23,6 +24,7 @@ if not groq_api_key:
     raise ValueError("API key for Groq is missing. Please set the GROQ_API_KEY in the .env file.")
 
 client = Groq(api_key=groq_api_key)
+
 
 # Define the function to query the Groq API and clean the response
 def ask_groq(message):
@@ -52,6 +54,7 @@ def ask_groq(message):
     except Exception as e:
         return f"Error with Groq API: {str(e)}"
 
+
 def clean_text(text):
     """
     Function to clean the response by removing unwanted characters.
@@ -67,20 +70,52 @@ def chatbot(request):
     chats = Chat.objects.filter(user=request.user)
 
     if request.method == 'POST':
-        message = request.POST.get('message')
-        
-        if message:
-            # Get cleaned response from Groq
-            response = ask_groq(message)
+        message = request.POST.get('message', '').strip() # Get message, default to empty string
+        # NEW: Get file_names list, default to empty list if not present or decoding fails
+        try:
+            file_names_json = request.POST.get('file_names', '[]')
+            file_names = json.loads(file_names_json)
+        except json.JSONDecodeError:
+            file_names = []
 
-            # Save the chat in the database
-            chat = Chat(user=request.user, message=message, response=response, created_at=timezone.now())
+        # MODIFIED: Check if there is a message OR files
+        if message or file_names:
+            
+            # 1. CONSTRUCT PROMPT FOR GROQ
+            groq_prompt = message
+            
+            if file_names:
+                files_info = ", ".join(file_names)
+                # This simulates that the AI is processing the files
+                file_context = f"You are referencing the following documents: {files_info}. "
+                
+                # Prepend the file context to the user's message
+                if message:
+                    groq_prompt = file_context + f"Based on the files, here is my question: {message}"
+                else:
+                    groq_prompt = file_context + "Please acknowledge the files and ask for a question."
+
+            # 2. Get cleaned response from Groq
+            response = ask_groq(groq_prompt)
+
+            # 3. CONSTRUCT MESSAGE TO SAVE IN DATABASE
+            # We save the original message + a note about the files for accurate history display
+            db_message = message
+            if file_names:
+                files_info = f"[Attached: {', '.join(file_names)}]"
+                # Save the files info either at the start or end of the message
+                db_message = f"{message} {files_info}".strip()
+
+
+            # 4. Save the chat in the database
+            chat = Chat(user=request.user, message=db_message, response=response, created_at=timezone.now())
             chat.save()
 
-            # Return response as JSON
+            # 5. Return response as JSON (The JS will display the original message from its side)
             return JsonResponse({'message': message, 'response': response})
         else:
-            return JsonResponse({'error': 'No message provided'}, status=400)
+            # Error if neither message nor files were provided
+            return JsonResponse({'error': 'No message or file provided'}, status=400)
 
     return render(request, 'chatbot.html', {'chats': chats})
 
