@@ -44,23 +44,23 @@
       padding: 10px;
       background-color: #f8f9fa;
 
-      /* NEW: Use flex to center the wrapper content */
+      /* Use flex to center the wrapper content */
       display: flex; 
       justify-content: center;
     }
     
-    /* NEW STYLE: To hold the input group and the buttons */
+    /* To hold the input group and the buttons */
     .form-content-wrapper {
         display: flex;
         flex-direction: column; /* Stack input and buttons vertically */
         gap: 5px; /* Spacing between input and buttons */
 
-        /* NEW: Ensure the wrapper doesn't take up the full width, center it with a max-width if needed */
+        /* Ensure the wrapper doesn't take up the full width, center it with a max-width if needed */
         width: 100%;
         max-width: 800px; /* Example: set a max width for centering */
     }
 
-    /* NEW STYLE: To hold the two new buttons */
+    /* To hold the two new buttons */
     .form-buttons-wrapper {
         display: flex;
         justify-content: center; /* Align buttons to the right */
@@ -68,7 +68,7 @@
         padding-top: 5px; /* Optional: adds a little space above the buttons */
     }
 
-    /* NEW STYLE: To make both buttons the same size */
+    /* To make both buttons the same size */
     .btn-equal-width {
         flex-grow: 1; /* Allows buttons to take equal space */
         max-width: 110px; /* Limit the maximum width of each button for centering effect */
@@ -84,7 +84,7 @@
       border-radius: 0;
     }
     
-    /* NEW STYLE: For the delete button to stand out */
+    /* For the delete button to stand out */
     .btn-delete {
         /* Add styles as needed, using Bootstrap danger color is common */
         background-color: #dc3545; /* Bootstrap danger color */
@@ -92,7 +92,7 @@
         color: white;
     }
     
-    /* NEW STYLE: For the logout button */
+    /* For the logout button */
     .btn-logout {
         /* Add styles as needed, using Bootstrap secondary or primary */
         background-color: #6c757d; /* Bootstrap secondary color */
@@ -110,7 +110,7 @@
       margin: 0 auto; /* This centers the container horizontally */
     }
 
-    /* NEW: Ensure the card only takes up the available centered space */
+    /* Ensure the card only takes up the available centered space */
     .card {
         width: 100%;
         /* ADD THIS LINE to remove the border */
@@ -119,7 +119,7 @@
         box-shadow: none;
     }
 
-    /* NEW STYLE: For the file upload button to make it square and distinct */
+    /* For the file upload button to make it square and distinct */
     .btn-file-upload {
         /* Square shape is achieved by equal width and height */
         width: 38px; /* Set a fixed width */
@@ -156,14 +156,14 @@
       border-right: none;
     }
 
-    /* NEW STYLE: For the file attachment container */
+    /* For the file attachment container */
     .attachment-container {
         display: flex;
         align-items: center;
         padding: 5px 0;
     }
 
-    /* NEW STYLE: For the file token box (the file preview) */
+    /* For the file token box (the file preview) */
     .file-token {
         display: flex;
         align-items: center;
@@ -180,7 +180,7 @@
         box-shadow: 0 1px 3px rgba(0,0,0,0.05);
     }
 
-    /* NEW STYLE: For the icon and text alignment */
+    /* For the icon and text alignment */
     .file-icon {
         color: #dc3545; /* Red color for PDF/file icon */
         margin-right: 8px;
@@ -188,7 +188,7 @@
         font-weight: bold;
     }
     
-    /* NEW STYLE: To align the input/send button area */
+    /* To align the input/send button area */
     .input-wrapper {
         display: flex;
         flex-grow: 1; /* Allows it to take remaining space */
@@ -203,7 +203,7 @@
     }
 
 
-    /* NEW STYLES FOR MARKDOWN RENDERING */
+    /* STYLES FOR MARKDOWN RENDERING */
     .message-content {
         /* Set a comfortable line height for the text content */
         line-height: 1.6;
@@ -253,7 +253,6 @@
         border-radius: 5px;
         overflow-x: auto;
     }
-    /* END NEW STYLES FOR MARKDOWN RENDERING */
 
   </style>
 {% endblock %}
@@ -343,13 +342,13 @@
   const messageForm = document.querySelector('.message-form');
   const messageInput = document.querySelector('.message-input');
   
-  // NEW HELPER FUNCTION: To render markdown content
+  // HELPER FUNCTION: To render markdown content
   function renderMarkdown(markdownText) {
       // Use marked.parse to convert markdown to HTML
       return marked.parse(markdownText || '');
   }
   
-  // NEW: Render the chat history upon page load
+  // Render the chat history upon page load
   document.addEventListener('DOMContentLoaded', () => {
     // Loop through all existing response elements and render their markdown
     const historyResponses = document.querySelectorAll('.message.received .message-content');
@@ -369,16 +368,16 @@
     event.preventDefault();
 
     const message = messageInput.value.trim();
-    // NEW: Get the list of attached files
+    // Get the list of attached files
     const attachedFiles = fileInput.files;
     const fileNames = Array.from(attachedFiles).map(file => file.name);
 
-    // MODIFIED: Only proceed if there is a message OR at least one attached file
+    // Only proceed if there is a message OR at least one attached file
     if (message.length === 0 && fileNames.length === 0) {
       return;
     }
 
-    // NEW: Construct the display message for the user, including file info
+    // Construct the display message for the user, including file info
     let userMessageContent = renderMarkdown(message); // Render user message too, in case they use markdown
     if (fileNames.length > 0) {
         const fileListString = fileNames.join(', ');
@@ -405,7 +404,7 @@
     // Clear the input and file attachment after successful submission
     messageInput.value = '';
     
-    // NEW: Clear the file attachment UI and input
+    // Clear the file attachment UI and input
     clearFileAttachment(); 
 
     // Add a temporary loading message for better UX
@@ -446,7 +445,7 @@
         document.getElementById('loading-message')?.remove();
 
         const responseText = data.response;
-        // MODIFIED: Use renderMarkdown for the AI response
+        // Use renderMarkdown for the AI response
         const renderedResponse = renderMarkdown(responseText); 
         
         const responseItem = document.createElement('li');
@@ -553,7 +552,7 @@
         `;
 
         const closeButton = token.querySelector('.close');
-        // MODIFIED: The close button needs to re-run the file input change event
+        // The close button needs to re-run the file input change event
         closeButton.addEventListener('click', () => {
             clearFileAttachment();
             // Re-run the change logic to ensure the placeholder is reset

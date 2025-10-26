@@ -71,14 +71,14 @@ def chatbot(request):
 
     if request.method == 'POST':
         message = request.POST.get('message', '').strip() # Get message, default to empty string
-        # NEW: Get file_names list, default to empty list if not present or decoding fails
+        # Get file_names list, default to empty list if not present or decoding fails
         try:
             file_names_json = request.POST.get('file_names', '[]')
             file_names = json.loads(file_names_json)
         except json.JSONDecodeError:
             file_names = []
 
-        # MODIFIED: Check if there is a message OR files
+        # Check if there is a message OR files
         if message or file_names:
             
             # 1. CONSTRUCT PROMPT FOR GROQ
