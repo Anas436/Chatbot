@@ -25,7 +25,7 @@ DocuMind is a Django-based web application that provides an intelligent chatbot 
 - Groq API Key
 - Django 4.0+
 
-### Demo
+## Demo
 ![](https://github.com/Anas436/Chatbot/blob/main/chatbot.png)
 <br>
 <hr>
@@ -78,9 +78,40 @@ python manage.py createsuperuser
 ```bash
 python manage.py runserver
 ```
-### 📁 Project Structure
+## 📁 Project Structure
+```bash
+CHATBOT/
+├── chatbot/                        # Main Django application
+│   ├── chroma_db/                  # Vector database storage
+│   ├── data/                       # Document storage folder
+│   ├── templates/                  # HTML templates
+│   │   ├── base.html               # Base template
+│   │   ├── chatbot.html            # Chat interface
+│   │   ├── login.html              # Login page
+│   │   └── register.html           # Registration page
+│   ├── __init__.py
+│   ├── admin.py                    # Django admin configuration
+│   ├── apps.py                     # App configuration
+│   ├── langgraph.py                # Core AI and document processing logic
+│   ├── models.py                   # Database models
+│   ├── tests.py                    # Test cases
+│   ├── urls.py                     # URL routing
+│   └── views.py                    # View handlers
+├── django_chatbot/                  # Django project settings
+│   ├── __init__.py
+│   ├── asgi.py                     # ASGI configuration
+│   ├── settings.py                 # Project settings
+│   ├── urls.py                     # Main URL configuration
+│   └── wsgi.py                     # WSGI configuration
+├── .env                            # Environment variables
+├── build.sh                        # Deployment script
+├── db.sqlite3                      # SQLite database
+├── manage.py                       # Django management script
+├── README.md                       # Project documentation
+└──  requirements.txt                # Python dependencies
+```
 
-### 🔧 Configuration
+# 🔧 Configuration
 
 ## Document Storage
 Create a __data__ folder in your project root for document uploads:
@@ -98,23 +129,23 @@ The system automatically processes:
 ## Vector Database
 __ChromaDB__ is used for document embeddings with automatic user isolation.
 
-### 🔌 API Usage
+## 🔌 API Usage
 ## Chat Endpoints
-# 1. Regular Chat (JSON Response)
+### 1. Regular Chat (JSON Response)
 ```bash
 POST /chat/
 Content-Type: application/x-www-form-urlencoded
 
 message=What are the key points in my documents?
 ```
-# Response:
+### Response:
 ```bash
 {
     "message": "What are the key points in my documents?",
     "response": "Based on your uploaded documents, the key points are..."
 }
 ```
-# 2. Streaming Chat (Server-Sent Events)
+### 2. Streaming Chat (Server-Sent Events)
 ```bash
 POST /stream_chat/
 Content-Type: application/x-www-form-urlencoded
@@ -123,27 +154,26 @@ message=Explain the main concepts
 ```
 __Response:__ Server-sent events with real-time token streaming.
 
-# 3. Delete Chat History
+### 3. Delete Chat History
 ```bash
 POST /delete_chat/
 ```
 __Response:__ HTTP 204 No Content on success
 
-### Common Issues
+## Common Issues
 __1. Documents not loading:__ Ensure files are in data/ folder with correct extensions
+
 __2. Groq API errors:__ Verify API key in .env file
+
 __3. Vector store issues:__ Check write permissions for chroma_db/ directory
+
 __4. Refresh browser:__ Solve chat container response inconsistency
 
-### 🤝 Contributing
+## 🤝 Contributing
 1. Fork the repository
-
 2. Create a feature branch
-
 3. Commit your changes
-
 4. Push to the branch
-
 5. Create a Pull Request
 
 ## Reference
