@@ -20,7 +20,7 @@ load_dotenv()
 # Initialize LLM
 llm = ChatGroq(
     groq_api_key=os.getenv("GROQ_API_KEY"),
-    model_name="llama-3.1-8b-instant"
+    model_name="openai/gpt-oss-120b"
 )
 
 # Initialize embeddings
