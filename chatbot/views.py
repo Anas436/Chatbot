@@ -3,6 +3,7 @@ import json
 import tempfile
 import os
 from django.shortcuts import render, redirect
+from .langgraph import chatbot, llm
 from django.http import JsonResponse, HttpResponse, StreamingHttpResponse
 from django.views.decorators.http import require_POST
 from django.contrib import auth
@@ -26,8 +27,6 @@ def ask_groq(message):
 
 @login_required(login_url='/login')
 def chatbot_view(request):
-    from .langgraph import chatbot, llm
-    
     chats = Chat.objects.filter(user=request.user)
 
     if request.method == 'POST':
