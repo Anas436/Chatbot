@@ -119,34 +119,6 @@
         box-shadow: none;
     }
 
-    /* For the file upload button to make it square and distinct */
-    .btn-file-upload {
-        /* Square shape is achieved by equal width and height */
-        width: 38px; /* Set a fixed width */
-        height: 38px; /* Set a fixed height */
-        padding: 0; /* Remove default padding */
-        line-height: 1; /* Adjust line height for '+' centering */
-        font-size: 1.5rem; /* Make the '+' sign bigger */
-        font-weight: bold;
-        display: flex; /* Use flex to perfectly center the '+' */
-        align-items: center;
-        justify-content: center;
-        margin: auto 5px auto 0; /* Add margin on the right and center vertically */
-        background-color: #e9ecef; /* Light background */
-        border-color: #e9ecef;
-        color: #495057; /* Darker text color */
-
-        /* To look more 'interactive' and modern, let's add a slight border radius */
-        border-radius: 6px; /* A slight rounding for a modern square look */
-    }
-
-    /* Override Bootstrap's input-group-prepend to align the button */
-    .input-group-prepend {
-        /* This is important to vertically align the button with the input field */
-        display: flex; 
-        align-items: center; 
-        margin-right: -4.1px; /* Pull the button closer to the input field */
-    }
 
     /* Adjust the message input to remove the rounded corner on the left */
     .message-input {
@@ -154,45 +126,6 @@
       border-top-left-radius: 0.25rem; /* Keep default Bootstrap corner */
       border-bottom-left-radius: 0.25rem; /* Keep default Bootstrap corner */
       border-right: none;
-    }
-
-    /* For the file attachment container */
-    .attachment-container {
-        display: flex;
-        align-items: center;
-        padding: 5px 0;
-    }
-
-    /* For the file token box (the file preview) */
-    .file-token {
-        display: flex;
-        align-items: center;
-        background-color: #f1f0f0; /* Light background */
-        border: 1px solid #dee2e6;
-        border-radius: 8px;
-        padding: 8px 12px;
-        margin-right: 10px;
-        font-size: 0.9rem;
-        max-width: 600px;
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        box-shadow: 0 1px 3px rgba(0,0,0,0.05);
-    }
-
-    /* For the icon and text alignment */
-    .file-icon {
-        color: #dc3545; /* Red color for PDF/file icon */
-        margin-right: 8px;
-        font-size: 1.2rem;
-        font-weight: bold;
-    }
-    
-    /* To align the input/send button area */
-    .input-wrapper {
-        display: flex;
-        flex-grow: 1; /* Allows it to take remaining space */
-        align-items: center;
     }
 
     /* Adjust the form input area to be flexible to accommodate the token */
@@ -254,6 +187,32 @@
         overflow-x: auto;
     }
 
+
+
+
+    .typing-indicator {
+        display: flex;
+        align-items: center;
+        gap: 3px;
+    }
+
+    .typing-indicator span {
+        height: 8px;
+        width: 8px;
+        background-color: #6c757d;
+        border-radius: 50%;
+        display: inline-block;
+        animation: typing 1.4s infinite ease-in-out;
+    }
+
+    .typing-indicator span:nth-child(1) { animation-delay: -0.32s; }
+    .typing-indicator span:nth-child(2) { animation-delay: -0.16s; }
+
+    @keyframes typing {
+        0%, 80%, 100% { transform: scale(0); }
+        40% { transform: scale(1); }
+    }
+
   </style>
 {% endblock %}
 
@@ -303,41 +262,32 @@
   </div>
 
   <form class="message-form">
-    {%csrf_token%}
-    <div class="form-content-wrapper">
-      <div id="attachment-preview" class="attachment-container">
-        </div> 
-      
-      <div class="input-group">
+      {%csrf_token%}
+      <div class="form-content-wrapper">
+        <!-- File attachment section removed -->
         
-        <input type="file" id="file-input" name="file-input" style="display: none;" accept=".pdf,.doc,.docx,.txt" multiple>
-        
-        <div class="input-group-prepend">
-            <button type="button" id="file-upload-btn" class="btn btn-secondary btn-file-upload">
-                +
-            </button>
+        <div class="input-group">
+          <!-- File input and upload button removed -->
+          
+          <input type="text" class="form-control message-input" placeholder="Ask DocuMind...">
+          
+          <div class="input-group-append">
+            <button type="submit" class="btn btn-primary btn-send">Send</button>
+          </div>
         </div>
-        
-        <input type="text" class="form-control message-input" placeholder="Ask DocuMind...">
-        
-        <div class="input-group-append">
-          <button type="submit" class="btn btn-primary btn-send">Send</button>
+        <div class="form-buttons-wrapper">
+          {% if user.is_authenticated %}
+            <button type="button" id="delete-chat-btn" class="btn btn-delete btn-equal-width">Delete Chat</button> 
+            <a href="logout" class="btn btn-logout btn-equal-width" role="button">Logout</a>
+          {% endif %}
         </div>
       </div>
-      <div class="form-buttons-wrapper">
-        {% if user.is_authenticated %}
-          <button type="button" id="delete-chat-btn" class="btn btn-delete btn-equal-width">Delete Chat</button> 
-          <a href="logout" class="btn btn-logout btn-equal-width" role="button">Logout</a>
-        {% endif %}
-      </div>
-    </div>
   </form>
 
 </div>
 
 
 <script>
-
   const messagesList = document.querySelector('.messages-list');
   const messageForm = document.querySelector('.message-form');
   const messageInput = document.querySelector('.message-input');
@@ -363,246 +313,255 @@
     messagesBox.scrollTop = messagesBox.scrollHeight;
   });
 
+  // Form submit event handler - SIMPLIFIED VERSION
+  messageForm.addEventListener('submit', async (event) => {
+      event.preventDefault();
 
-  messageForm.addEventListener('submit', (event) => {
-    event.preventDefault();
+      const message = messageInput.value.trim();
 
-    const message = messageInput.value.trim();
-    // Get the list of attached files
-    const attachedFiles = fileInput.files;
-    const fileNames = Array.from(attachedFiles).map(file => file.name);
+      if (!message) {
+          return; // Don't send empty messages
+      }
 
-    // Only proceed if there is a message OR at least one attached file
-    if (message.length === 0 && fileNames.length === 0) {
-      return;
-    }
+      // Display user message
+      const userMessageContent = renderMarkdown(message);
+      const messageItem = document.createElement('li');
+      messageItem.classList.add('message', 'sent');
+      messageItem.innerHTML = `
+          <div class="message-text">
+              <div class="message-sender">
+                  <b>You</b>
+              </div>
+              <div class="message-content">
+                  ${userMessageContent}
+              </div>
+          </div>`;
+      messagesList.appendChild(messageItem);
 
-    // Construct the display message for the user, including file info
-    let userMessageContent = renderMarkdown(message); // Render user message too, in case they use markdown
-    if (fileNames.length > 0) {
-        const fileListString = fileNames.join(', ');
-        // Append the attachment info directly as HTML
-        userMessageContent += `<div style="margin-top: 5px; font-size: 0.9em; color: #6c757d;">
-                                Attached: ${fileListString}
-                              </div>`;
-    }
-    
-    // Display the user's message (including file names if present)
-    const messageItem = document.createElement('li');
-    messageItem.classList.add('message', 'sent');
-    messageItem.innerHTML = `
-        <div class="message-text">
-            <div class="message-sender">
-                <b>You</b>
-            </div>
-            <div class="message-content">
-                ${userMessageContent}
-            </div>
-        </div>`;
-    messagesList.appendChild(messageItem);
+      // Clear input
+      messageInput.value = '';
 
-    // Clear the input and file attachment after successful submission
-    messageInput.value = '';
-    
-    // Clear the file attachment UI and input
-    clearFileAttachment(); 
+      // Create loading message
+      const loadingItem = document.createElement('li');
+      loadingItem.classList.add('message', 'received');
+      loadingItem.id = 'loading-message';
+      loadingItem.innerHTML = `
+          <div class="message-text">
+              <div class="message-sender">
+                  <b>DocuMind</b>
+              </div>
+              <div class="message-content">
+                  <div class="typing-indicator">
+                      <span></span>
+                      <span></span>
+                      <span></span>
+                  </div>
+              </div>
+          </div>
+      `;
+      messagesList.appendChild(loadingItem);
+      messagesList.lastElementChild.scrollIntoView({ behavior: 'smooth' });
 
-    // Add a temporary loading message for better UX
-    const loadingItem = document.createElement('li');
-    loadingItem.classList.add('message', 'received');
-    loadingItem.id = 'loading-message';
-    loadingItem.innerHTML = `
-        <div class="message-text">
-            <div class="message-sender">
-                <b>DocuMind</b>
-            </div>
-            <div class="message-content">
-                ...Thinking...
-            </div>
-        </div>
-    `;
-    messagesList.appendChild(loadingItem);
-    
-    // Scroll to the bottom to show the loading message
-    messagesList.lastElementChild.scrollIntoView({ behavior: 'smooth' });
+      // Use streaming approach
+      const useStreaming = true;
 
-
-    // Prepare the request body to include file names
-    const requestBody = new URLSearchParams({
-        'csrfmiddlewaretoken': document.querySelector('[name=csrfmiddlewaretoken]').value,
-        'message': message,
-        'file_names': JSON.stringify(fileNames) // Send file names as a JSON string
-    });
-
-    fetch('', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-      body: requestBody
-    })
-      .then(response => response.json())
-      .then(data => {
-        // Remove the loading message
-        document.getElementById('loading-message')?.remove();
-
-        const responseText = data.response;
-        // Use renderMarkdown for the AI response
-        const renderedResponse = renderMarkdown(responseText); 
-        
-        const responseItem = document.createElement('li');
-        responseItem.classList.add('message', 'received');
-        responseItem.innerHTML = `
-        <div class="message-text">
-            <div class="message-sender">
-              <b>DocuMind</b>
-            </div>
-            <div class="message-content">
-                ${renderedResponse} </div>
-        </div>
-          `;
-        messagesList.appendChild(responseItem);
-        
-        // Scroll to the bottom after the response is added
-        messagesList.lastElementChild.scrollIntoView({ behavior: 'smooth' });
-      })
-      .catch(error => {
-          console.error('Fetch Error:', error);
-          // Remove the loading message and display an error
-          document.getElementById('loading-message')?.remove();
-          const errorItem = document.createElement('li');
-          errorItem.classList.add('message', 'received');
-          errorItem.innerHTML = `<div class="message-text"><div class="message-sender"><b>DocuMind</b></div><div class="message-content" style="color: red;">Error: Failed to get response.</div></div>`;
-          messagesList.appendChild(errorItem);
-      });
+      if (useStreaming) {
+          await handleStreamingResponse(message);
+      } else {
+          handleRegularResponse(message);
+      }
   });
 
-  // Event Listener for Delete Chat Button
-    const deleteChatBtn = document.getElementById('delete-chat-btn');
-    
-    function showDeleteFeedback(buttonElement, success) {
-        const originalText = 'Delete Chat';
-        const successText = 'Deleting...';
-        const failureText = 'Error!';
+  // Streaming response handler - SIMPLIFIED
+  async function handleStreamingResponse(message) {
+      try {
+          const formData = new FormData();
+          formData.append('message', message);
+          formData.append('csrfmiddlewaretoken', document.querySelector('[name=csrfmiddlewaretoken]').value);
 
-        // 1. Set text and state
-        buttonElement.disabled = true;
+          const response = await fetch('/stream_chat/', {
+              method: 'POST',
+              body: formData
+          });
 
-        // 2. Apply feedback
-        if (success) {
-            buttonElement.textContent = successText;
-        } else {
-            buttonElement.textContent = failureText;
-        }
-
-        // 3. Revert to original text after a short delay
-        setTimeout(() => {
-            buttonElement.textContent = originalText;
-            buttonElement.disabled = false;
-        }, 2000); // Revert after 2 seconds (2000ms)
-    }
-
-    if (deleteChatBtn) {
-      deleteChatBtn.addEventListener('click', () => {
-        
-        // Temporarily disable the button to prevent multiple clicks
-        deleteChatBtn.disabled = true;
-        deleteChatBtn.textContent = 'Deleting...'; // Display 'Deleting...'
-
-        fetch('/delete_chat/', { // Use absolute path defined in urls.py
-            method: 'POST',
-            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-            body: new URLSearchParams({
-              'csrfmiddlewaretoken': document.querySelector('[name=csrfmiddlewaretoken]').value
-            })
-          })
-            .then(response => {
-              if (response.status === 204) { // HTTP 204 No Content for success
-                // Clear the messages list on successful deletion
-                messagesList.innerHTML = ''; 
-                // CALL FEEDBACK FUNCTION ON SUCCESS
-                showDeleteFeedback(deleteChatBtn, true); 
-              } else {
-                // CALL FEEDBACK FUNCTION ON FAILURE (e.g., 403 Forbidden, 500 Internal Server Error)
-                showDeleteFeedback(deleteChatBtn, false);
-              }
-            })
-            .catch(error => {
-              console.error('Error:', error);
-              // CALL FEEDBACK FUNCTION ON NETWORK/FETCH ERROR
-              showDeleteFeedback(deleteChatBtn, false);
-            })
-        
-      });
-    }
-
-  // File handling (No functional change, but included for completeness)
-    const fileInput = document.getElementById('file-input');
-    const fileUploadBtn = document.getElementById('file-upload-btn');
-    const attachmentPreview = document.getElementById('attachment-preview');
-
-    // Helper function to create the file token HTML
-    function createFileToken(fileName) {
-        const token = document.createElement('div');
-        token.classList.add('file-token');
-        token.innerHTML = `
-            <span class="file-icon">📄</span>
-            <span class="file-name" title="${fileName}">${fileName}</span>
-            <button type="button" class="close ml-2" aria-label="Close" style="border: none; background: none; color: #495057;">
-                <span aria-hidden="true">&times;</span>
-            </button>
-        `;
-
-        const closeButton = token.querySelector('.close');
-        // The close button needs to re-run the file input change event
-        closeButton.addEventListener('click', () => {
-            clearFileAttachment();
-            // Re-run the change logic to ensure the placeholder is reset
-            fileInput.dispatchEvent(new Event('change'));
-        });
-
-        return token;
-    }
-
-    // Helper function to clear the file attachment
-    function clearFileAttachment() {
-        fileInput.value = ''; 
-        attachmentPreview.innerHTML = ''; 
-        messageInput.placeholder = 'Ask DocuMind...';
-    }
-
-    // Event Listener for the Plus Button
-    if (fileUploadBtn && fileInput) {
-      fileUploadBtn.addEventListener('click', () => {
-        fileInput.click(); // Programmatically click the hidden file input
-      });
-      
-      // Event Listener for when a file is actually selected
-      fileInput.addEventListener('change', () => {
-          attachmentPreview.innerHTML = ''; 
-
-          if (fileInput.files.length > 0) {
-              // Loop through ALL selected files
-              for (let i = 0; i < fileInput.files.length; i++) {
-                  const file = fileInput.files[i];
-                  const fileName = file.name;
-              
-                  // 1. Create and append a visual file token for EACH file
-                  const fileToken = createFileToken(fileName);
-                  attachmentPreview.appendChild(fileToken);
-              }
-              
-              // 2. Update the message input placeholder
-              messageInput.placeholder = `Ask about the ${fileInput.files.length} documents...`;
-          } else {
-              // If files were attached and then cleared (e.g., via the clearFileAttachment call), reset the placeholder
-              messageInput.placeholder = 'Ask DocuMind...';
+          if (!response.ok) {
+              throw new Error('Stream request failed');
           }
-      });
-    }
+
+          const reader = response.body.getReader();
+          const decoder = new TextDecoder();
+          
+          // Remove loading message
+          document.getElementById('loading-message')?.remove();
+          
+          // Create streaming response element
+          const responseItem = document.createElement('li');
+          responseItem.classList.add('message', 'received');
+          responseItem.innerHTML = `
+              <div class="message-text">
+                  <div class="message-sender">
+                      <b>DocuMind</b>
+                  </div>
+                  <div class="message-content" id="streaming-response">
+                  </div>
+              </div>
+          `;
+          messagesList.appendChild(responseItem);
+          
+          const responseContent = document.getElementById('streaming-response');
+          let fullResponse = '';
+          let buffer = '';
+
+          while (true) {
+              const { done, value } = await reader.read();
+              if (done) break;
+              
+              const chunk = decoder.decode(value, { stream: true });
+              buffer += chunk;
+              
+              const lines = buffer.split('\n');
+              buffer = lines.pop() || ''; // Keep incomplete line in buffer
+              
+              for (const line of lines) {
+                  if (line.trim() === '') continue;
+                  if (line.startsWith('data: ')) {
+                      const word = line.slice(6).trim();
+                      if (word) {
+                          fullResponse += word + ' ';
+                          responseContent.textContent = fullResponse;
+                          // Scroll to the latest message
+                          responseItem.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                      }
+                  }
+              }
+          }
+
+          // Process any remaining buffer
+          if (buffer.trim() && buffer.startsWith('data: ')) {
+              const word = buffer.slice(6).trim();
+              if (word) {
+                  fullResponse += word + ' ';
+                  responseContent.textContent = fullResponse;
+              }
+          }
+
+          // Convert final response to markdown
+          if (fullResponse.trim()) {
+              responseContent.innerHTML = renderMarkdown(fullResponse);
+          }
+          
+      } catch (error) {
+          console.error('Stream Error:', error);
+          handleErrorResponse();
+      }
+  }
+
+  // Regular response handler - SIMPLIFIED
+  function handleRegularResponse(message) {
+      const formData = new FormData();
+      formData.append('message', message);
+      formData.append('csrfmiddlewaretoken', document.querySelector('[name=csrfmiddlewaretoken]').value);
+
+      fetch('', {
+          method: 'POST',
+          body: formData
+      })
+        .then(response => response.json())
+        .then(data => {
+            const loadingMessage = document.getElementById('loading-message');
+            if (loadingMessage && loadingMessage.parentNode) {
+                loadingMessage.parentNode.removeChild(loadingMessage);
+            }
+            
+            const renderedResponse = renderMarkdown(data.response);
+            const responseItem = document.createElement('li');
+            responseItem.classList.add('message', 'received');
+            responseItem.innerHTML = `
+                <div class="message-text">
+                    <div class="message-sender">
+                        <b>DocuMind</b>
+                    </div>
+                    <div class="message-content">
+                        ${renderedResponse}
+                    </div>
+                </div>
+            `;
+            messagesList.appendChild(responseItem);
+            messagesList.lastElementChild.scrollIntoView({ behavior: 'smooth' });
+        })
+        .catch(error => {
+            console.error('Fetch Error:', error);
+            handleErrorResponse();
+        });
+  }
+
+  function handleErrorResponse() {
+      document.getElementById('loading-message')?.remove();
+      const errorItem = document.createElement('li');
+      errorItem.classList.add('message', 'received');
+      errorItem.innerHTML = `
+          <div class="message-text">
+              <div class="message-sender">
+                  <b>DocuMind</b>
+              </div>
+              <div class="message-content" style="color: red;">
+                  Error: Failed to get response.
+              </div>
+          </div>`;
+      messagesList.appendChild(errorItem);
+  }
+
+  // Delete Chat Button functionality (unchanged)
+  const deleteChatBtn = document.getElementById('delete-chat-btn');
+  
+  function showDeleteFeedback(buttonElement, success) {
+      const originalText = 'Delete Chat';
+      const successText = 'Deleting...';
+      const failureText = 'Error!';
+
+      buttonElement.disabled = true;
+
+      if (success) {
+          buttonElement.textContent = successText;
+      } else {
+          buttonElement.textContent = failureText;
+      }
+
+      setTimeout(() => {
+          buttonElement.textContent = originalText;
+          buttonElement.disabled = false;
+      }, 2000);
+  }
+
+  if (deleteChatBtn) {
+    deleteChatBtn.addEventListener('click', () => {
+      
+      deleteChatBtn.disabled = true;
+      deleteChatBtn.textContent = 'Deleting...';
+
+      fetch('/delete_chat/', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+          body: new URLSearchParams({
+            'csrfmiddlewaretoken': document.querySelector('[name=csrfmiddlewaretoken]').value
+          })
+        })
+          .then(response => {
+            if (response.status === 204) {
+              messagesList.innerHTML = ''; 
+              showDeleteFeedback(deleteChatBtn, true); 
+            } else {
+              showDeleteFeedback(deleteChatBtn, false);
+            }
+          })
+          .catch(error => {
+            console.error('Error:', error);
+            showDeleteFeedback(deleteChatBtn, false);
+          })
+      
+    });
+  }
 
 </script>
-
-
-
-
 
 {% endblock %}

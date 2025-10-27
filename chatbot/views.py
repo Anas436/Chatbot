@@ -1,140 +1,136 @@
 import re
+import json
+import tempfile
+import os
 from django.shortcuts import render, redirect
-from django.http import JsonResponse, HttpResponse
+from django.http import JsonResponse, HttpResponse, StreamingHttpResponse
 from django.views.decorators.http import require_POST
 from django.contrib import auth
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
 from django.contrib import messages
-from .models import Chat
+from .models import Chat, UploadedDocument
 from django.utils import timezone
+from django.views.decorators.csrf import csrf_exempt
 
-import os
-import json
-from dotenv import load_dotenv
-from groq import Groq
-from langchain_groq import ChatGroq
-load_dotenv()
+from .langgraph import chatbot, llm
+from langchain_core.messages import HumanMessage
 
 
-# Retrieve the API key from the .env file
-groq_api_key = os.getenv("GROQ_API_KEY")
-
-if not groq_api_key:
-    raise ValueError("API key for Groq is missing. Please set the GROQ_API_KEY in the .env file.")
-
-client = Groq(api_key=groq_api_key)
-
-
-# Define the function to query the Groq API and clean the response
 def ask_groq(message):
+    """Fallback to original Groq function if needed"""
     try:
-        # Make API call with the correct setup
-        response = client.chat.completions.create(
-            model="openai/gpt-oss-120b",  # Adjust model name if needed
-            messages=[
-                {"role": "system", "content": "You are a helpful assistant."},
-                {"role": "user", "content": message}
-            ],
-            temperature=1.0,
-            max_tokens=1024,
-            top_p=1.0,
-            stream=False
-        )
-
-        # Extract the response content
-        answer = response.choices[0].message.content.strip()
-
-        # Clean unwanted characters (e.g., extra spaces, newlines, etc.)
-        cleaned_answer = clean_text(answer)
-
-        # Return the cleaned response
-        return cleaned_answer
-
+        response = llm.invoke([HumanMessage(content=message)])
+        return response.content
     except Exception as e:
         return f"Error with Groq API: {str(e)}"
 
 
-def clean_text(text):
-    """
-    Function to clean the response by removing unwanted characters.
-    """
-    # Remove unwanted characters like extra spaces, newlines, and non-printable characters
-    cleaned_text = re.sub(r'\s+', ' ', text)  # Replace multiple spaces with a single space
-    cleaned_text = re.sub(r'[^\x00-\x7F]+', '', cleaned_text)  # Remove non-ASCII characters
-    cleaned_text = cleaned_text.strip()  # Remove leading/trailing spaces
-    return cleaned_text
-
-@login_required(login_url='/login')  # Ensure only logged-in users can access this view
-def chatbot(request):
+@login_required(login_url='/login')
+def chatbot_view(request):
     chats = Chat.objects.filter(user=request.user)
 
     if request.method == 'POST':
-        message = request.POST.get('message', '').strip() # Get message, default to empty string
-        # Get file_names list, default to empty list if not present or decoding fails
-        try:
-            file_names_json = request.POST.get('file_names', '[]')
-            file_names = json.loads(file_names_json)
-        except json.JSONDecodeError:
-            file_names = []
-
-        # Check if there is a message OR files
-        if message or file_names:
-            
-            # 1. CONSTRUCT PROMPT FOR GROQ
-            groq_prompt = message
-            
-            if file_names:
-                files_info = ", ".join(file_names)
-                # This simulates that the AI is processing the files
-                file_context = f"You are referencing the following documents: {files_info}. "
+        message = request.POST.get('message', '').strip()
                 
-                # Prepend the file context to the user's message
-                if message:
-                    groq_prompt = file_context + f"Based on the files, here is my question: {message}"
-                else:
-                    groq_prompt = file_context + "Please acknowledge the files and ask for a question."
-
-            # 2. Get cleaned response from Groq
-            response = ask_groq(groq_prompt)
-
-            # 3. CONSTRUCT MESSAGE TO SAVE IN DATABASE
-            # We save the original message + a note about the files for accurate history display
-            db_message = message
-            if file_names:
-                files_info = f"[Attached: {', '.join(file_names)}]"
-                # Save the files info either at the start or end of the message
-                db_message = f"{message} {files_info}".strip()
-
-
-            # 4. Save the chat in the database
-            chat = Chat(user=request.user, message=db_message, response=response, created_at=timezone.now())
+        if message:
+            # Create LangGraph agent
+            agent = chatbot.create_agent()
+            
+            # Prepare messages for the agent
+            messages = [{"role": "user", "content": message}]
+            
+            # Invoke agent
+            result = agent.invoke({
+                "messages": messages,
+                "user_id": str(request.user.id),
+                "question": message
+            })
+            
+            response = result["response"]
+            
+            # Save to database (no file info)
+            chat = Chat(
+                user=request.user, 
+                message=message, 
+                response=response, 
+                created_at=timezone.now()
+            )
             chat.save()
 
-            # 5. Return response as JSON (The JS will display the original message from its side)
             return JsonResponse({'message': message, 'response': response})
         else:
-            # Error if neither message nor files were provided
-            return JsonResponse({'error': 'No message or file provided'}, status=400)
+            return JsonResponse({'error': 'No message provided'}, status=400)
 
     return render(request, 'chatbot.html', {'chats': chats})
+
+
+@csrf_exempt
+@login_required
+def stream_chat(request):
+    """Streaming chat endpoint"""
+    if request.method == 'POST':
+        message = request.POST.get('message', '').strip()
+
+        def generate():
+            try:
+                agent = chatbot.create_agent()
+                result = agent.invoke({
+                    "messages": [{"role": "user", "content": message}],
+                    "user_id": str(request.user.id),
+                    "question": message
+                })
+                
+                response = result["response"]
+                
+                # Send response in chunks for better streaming
+                words = response.split()
+                for word in words:
+                    yield f"data: {word}\n\n"
+                
+                # Save to database (no file info)
+                chat = Chat(
+                    user=request.user,
+                    message=message,
+                    response=response,
+                    created_at=timezone.now()
+                )
+                chat.save()
+                
+            except Exception as e:
+                yield f"data: Error: {str(e)}\n\n"
+        
+        response = StreamingHttpResponse(generate(), content_type='text/plain')
+        response['Cache-Control'] = 'no-cache'
+        response['X-Accel-Buffering'] = 'no'
+        return response
+    
+    return JsonResponse({'error': 'Invalid request'}, status=400)
+
 
 @require_POST
 @login_required(login_url='/login')
 def delete_chat_history(request):
-    """
-    Deletes all chat records associated with the current authenticated user.
-    """
+    """Deletes all chat records and documents for the current user"""
     try:
-        # Delete all chat objects belonging to the current user
+        # Delete chats
         Chat.objects.filter(user=request.user).delete()
         
-        # Return a success response
-        return HttpResponse(status=204) # 204 No Content is standard for successful deletion
+        # Delete documents
+        UploadedDocument.objects.filter(user=request.user).delete()
+        
+        # Delete vector store (optional - more complex cleanup)
+        try:
+            user_id = str(request.user.id)
+            if user_id in chatbot.vector_stores:
+                del chatbot.vector_stores[user_id]
+        except:
+            pass
+            
+        return HttpResponse(status=204)
     except Exception as e:
-        print(f"Error deleting chat history for user {request.user.username}: {e}")
+        print(f"Error deleting chat history: {e}")
         return HttpResponse(status=500, reason="Failed to delete chat history")
-
 
 def login(request):
     if request.method == 'POST':
