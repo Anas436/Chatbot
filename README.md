@@ -26,18 +26,22 @@ DocuMind is a Django-based web application that provides an intelligent chatbot 
 - Django 4.0+
 
 ## Demo
+
 ![](https://github.com/Anas436/Chatbot/blob/main/chatbot.png)
 <br>
+
 <hr>
 <br>
 
 ![](https://github.com/Anas436/Chatbot/blob/main/Anas.png)
 <br>
+
 <hr>
 <br>
 
 ![](https://github.com/Anas436/Chatbot/blob/main/signup.png)
 <br>
+
 <hr>
 <br>
 
@@ -46,39 +50,54 @@ DocuMind is a Django-based web application that provides an intelligent chatbot 
 ## ⚡ Quick Setup
 
 ### 1. Clone the Repository
+
 ```bash
 git clone https://github.com/Anas436/Chatbot.git
 cd Chatbot
 ```
+
 ### 2. Create Virtual Environment
+
 ```bash
 python -m venv venv
 source venv/bin/activate  # On Windows: venv\Scripts\activate
 ```
+
 ### 3. Install Dependencies
+
 ```bash
 pip install -r requirements.txt
 ```
+
 ### 4. Environment Configuration
-Create a __.env__ file in the project root:
+
+Create a **.env** file in the project root:
+
 ```bash
 GROQ_API_KEY=your_groq_api_key_here
 ```
+
 ### 5. Database Setup
+
 ```bash
 python manage.py makemigrations
 python manage.py migrate
 ```
+
 ### 6. Create Superuser (Optional)
+
 ```bash
 python manage.py createsuperuser
 ```
 
 ### 7. Run Development Server
+
 ```bash
 python manage.py runserver
 ```
+
 ## 📁 Project Structure
+
 ```bash
 CHATBOT/
 ├── chatbot/                        # Main Django application
@@ -114,62 +133,78 @@ CHATBOT/
 # 🔧 Configuration
 
 ## Document Storage
-Create a __data__ folder in your project root for document uploads:
+
+Create a **data** folder in your project root for document uploads:
+
 ```bash
 mkdir data
 ```
+
 The system automatically processes:
 
-* PDF files (.pdf)
+- PDF files (.pdf)
 
-* Word documents (.docx)
+- Word documents (.docx)
 
-* Text files (.txt)
+- Text files (.txt)
 
 ## Vector Database
-__ChromaDB__ is used for document embeddings with automatic user isolation.
+
+**ChromaDB** is used for document embeddings with automatic user isolation.
 
 ## 🔌 API Usage
+
 ## Chat Endpoints
+
 ### 1. Regular Chat (JSON Response)
+
 ```bash
 POST /chat/
 Content-Type: application/x-www-form-urlencoded
 
 message=What are the key points in my documents?
 ```
+
 ### Response:
+
 ```bash
 {
     "message": "What are the key points in my documents?",
     "response": "Based on your uploaded documents, the key points are..."
 }
 ```
+
 ### 2. Streaming Chat (Server-Sent Events)
+
 ```bash
 POST /stream_chat/
 Content-Type: application/x-www-form-urlencoded
 
 message=Explain the main concepts
 ```
-__Response:__ Server-sent events with real-time token streaming.
+
+**Response:** Server-sent events with real-time token streaming.
 
 ### 3. Delete Chat History
+
 ```bash
 POST /delete_chat/
 ```
-__Response:__ HTTP 204 No Content on success
+
+**Response:** HTTP 204 No Content on success
 
 ## Common Issues
-__1. Documents not loading:__ Ensure files are in data/ folder with correct extensions
 
-__2. Groq API errors:__ Verify API key in .env file
+**1. Documents not loading:** Ensure files are in data/ folder with correct extensions
 
-__3. Vector store issues:__ Check write permissions for chroma_db/ directory
+**2. Groq API errors:** Verify API key in .env file
 
-__4. Refresh browser:__ Solve chat container response inconsistency
+**3. Vector store issues:** Check write permissions for chroma_db/ directory
+
+**4. Refresh browser:** Solve chat container response inconsistency due to markdown rendering
 
 ## 🤝 Contributing
+
 1. Fork the repository
 2. Create a feature branch
 3. Commit your changes
@@ -177,6 +212,7 @@ __4. Refresh browser:__ Solve chat container response inconsistency
 5. Create a Pull Request
 
 ## Reference
+
 - Groq is Fast AI Inference [here](https://groq.com/)
 - Clinical AI Advisor using RAG, LLM, and Streamlit [here](https://github.com/Saifulislamsayem19/Clinical-AI-Advisor-using-RAG-and-LLM)
 - ChatBot using Streamlit and OpenAI [here](https://github.com/fshnkarimi/Chat-Bot-using-Streamlit-and-OpenAI/tree/main)
