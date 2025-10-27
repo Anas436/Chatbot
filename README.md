@@ -127,7 +127,8 @@ CHATBOT/
 ├── db.sqlite3                      # SQLite database
 ├── manage.py                       # Django management script
 ├── README.md                       # Project documentation
-└──  requirements.txt                # Python dependencies
+├── RESEARCH_AND_ANALYSIS.md        # Analyze the Systems and explore innovation
+└──  requirements.txt               # Python dependencies
 ```
 
 # 🔧 Configuration
