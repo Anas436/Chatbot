@@ -3,8 +3,6 @@ import time
 from typing import List, Dict, Any, Annotated
 import uuid
 from dotenv import load_dotenv
-
-from langchain_groq import ChatGroq
 from langchain_core.documents import Document
 from langchain_community.document_loaders import PyPDFLoader, TextLoader, Docx2txtLoader
 from langchain_text_splitters import RecursiveCharacterTextSplitter
@@ -17,11 +15,19 @@ from django.utils import timezone
 
 load_dotenv()
 
-# Initialize LLM
-llm = ChatGroq(
-    groq_api_key=os.getenv("GROQ_API_KEY"),
-    model_name="openai/gpt-oss-120b"
-)
+def get_llm():
+    """Lazy load the LLM"""
+    from langchain_groq import ChatGroq
+    llm = ChatGroq(
+        groq_api_key=os.getenv("GROQ_API_KEY"),
+        model_name="openai/gpt-oss-120b"
+    )
+
+def get_chatbot():
+    """Lazy load the chatbot"""
+    from .langgraph import create_chatbot  
+    return create_chatbot(get_llm())
+    
 
 # Initialize embeddings
 embeddings = HuggingFaceEmbeddings(
