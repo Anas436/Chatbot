@@ -12,8 +12,6 @@ from django.contrib import messages
 from .models import Chat, UploadedDocument
 from django.utils import timezone
 from django.views.decorators.csrf import csrf_exempt
-
-from .langgraph import chatbot, llm
 from langchain_core.messages import HumanMessage
 
 
@@ -28,6 +26,8 @@ def ask_groq(message):
 
 @login_required(login_url='/login')
 def chatbot_view(request):
+    from .langgraph import chatbot, llm
+    
     chats = Chat.objects.filter(user=request.user)
 
     if request.method == 'POST':
