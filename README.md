@@ -202,7 +202,7 @@ POST /delete_chat/
 
 **3. Vector store issues:** Check write permissions for chroma_db/ directory
 
-**4. Refresh browser:** Solve chat container response inconsistency due to markdown rendering
+**4. Refresh browser:** Solve chat container response inconsistency due to markdown rendering, and it has tendency to lose memory. 
 
 ## 🤝 Contributing
 
