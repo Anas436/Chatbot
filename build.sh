@@ -13,3 +13,5 @@ fi
 
 # Start Command
 # python manage.py migrate && python manage.py collectstatic && gunicorn django_chatbot.wsgi:application
+
+#This file will be use in Render, during this project deployment on the cloud.
