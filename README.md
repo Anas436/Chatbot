@@ -116,7 +116,7 @@ CHATBOT/
 │   ├── tests.py                    # Test cases
 │   ├── urls.py                     # URL routing
 │   └── views.py                    # View handlers
-├── django_chatbot/                  # Django project settings
+├── django_chatbot/                 # Django project settings
 │   ├── __init__.py
 │   ├── asgi.py                     # ASGI configuration
 │   ├── settings.py                 # Project settings
