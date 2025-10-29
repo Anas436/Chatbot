@@ -1,3 +1,4 @@
+# This file manahes the entire project of The ChatBot.
 """Django's command-line utility for administrative tasks."""
 import os
 import sys
